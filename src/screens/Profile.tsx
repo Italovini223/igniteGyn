@@ -4,6 +4,8 @@ import { Center, ScrollView, VStack, Skeleton, Text, Heading, useToast} from 'na
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system';
 
+import { FileInfo } from 'expo-file-system'
+
 import { ScreenHeader } from '@components/ScreenHeader'
 import { UserPhoto } from '@components/UserPhoto'
 import { TouchableOpacity } from 'react-native'
@@ -34,7 +36,7 @@ export function Profile(){
       
       if(photoSelected.assets[0].uri){
 
-        const photoInfo = await FileSystem.getInfoAsync(photoSelected.assets[0].uri)
+        const photoInfo = await FileSystem.getInfoAsync(photoSelected.assets[0].uri) as FileInfo
     
 
         if(photoInfo.size && (photoInfo.size / 1024 / 1024) > 5){

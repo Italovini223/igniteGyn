@@ -2,18 +2,23 @@ import { Platform } from 'react-native'
 
 import { useNavigation } from '@react-navigation/native'
 
+import { api } from '@services/api'
+
+import { AppError } from '@utils/AppError'
+
 import { useForm, Controller } from 'react-hook-form'
 
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 
-import { VStack, Image, Center, Text, Heading, ScrollView } from 'native-base'
+import { VStack, Image, Center, Text, Heading, ScrollView, useToast } from 'native-base'
 
 import BackgroundImg from '@assets/background.png'
 import LogoSvg from '@assets/logo.svg'
 
 import { Input } from '@components/Input'
 import { Button } from '@components/Button'
+
 
 type FormDataProps = {
   name: string;
@@ -41,8 +46,28 @@ export function SingUp() {
     navigation.goBack()
   }
 
-  function handleSingUp({ email, name, password, password_confirm }: FormDataProps){
-    console.log()
+  async function handleSingUp({ email, name, password, password_confirm }: FormDataProps){
+
+    const toast = useToast()
+    try{
+      const response = await api.post('/users', {
+        name,
+        email,
+        password
+      })
+    } catch(error) {
+
+      const isAppError = error instanceof AppError
+
+      const title = isAppError ? error.message : 'Nao foi possível criar a conta '
+
+      toast.show({
+        title,
+        placement: 'top',
+        bgColor: "red.500"
+      })
+    }
+
   }
 
   return (

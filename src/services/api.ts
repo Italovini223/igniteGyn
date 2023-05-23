@@ -13,4 +13,4 @@ api.interceptors.response.use(response => response, error => {
   }
 })
 
-export { api}
+export { api }

@@ -36,6 +36,8 @@ const singUpSchema = yup.object({
 
 export function SingUp() {
 
+  const toast = useToast()
+
   const { control, handleSubmit, formState:{errors} } = useForm<FormDataProps>({
     resolver: yupResolver(singUpSchema)
   })
@@ -46,15 +48,17 @@ export function SingUp() {
     navigation.goBack()
   }
 
-  async function handleSingUp({ email, name, password, password_confirm }: FormDataProps){
+  async function handleSingUp({ email, name, password }: FormDataProps){
 
-    const toast = useToast()
+    
     try{
       const response = await api.post('/users', {
         name,
         email,
         password
       })
+
+      console.log(response)
     } catch(error) {
 
       const isAppError = error instanceof AppError

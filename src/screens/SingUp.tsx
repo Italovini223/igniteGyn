@@ -1,8 +1,12 @@
+import { useState } from 'react'
+
 import { Platform } from 'react-native'
 
 import { useNavigation } from '@react-navigation/native'
 
 import { api } from '@services/api'
+
+import { useAuth } from '@hooks/useAuth'
 
 import { AppError } from '@utils/AppError'
 
@@ -11,7 +15,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 
-import { VStack, Image, Center, Text, Heading, ScrollView, useToast } from 'native-base'
+import { VStack, Image, Center, Text, Heading, ScrollView, useToast, useSafeArea } from 'native-base'
 
 import BackgroundImg from '@assets/background.png'
 import LogoSvg from '@assets/logo.svg'
@@ -35,7 +39,9 @@ const singUpSchema = yup.object({
 })
 
 export function SingUp() {
+  const [isLoading, setIsLoading] = useState(false)
 
+  const { singIn } = useAuth()
   const toast = useToast()
 
   const { control, handleSubmit, formState:{errors} } = useForm<FormDataProps>({
@@ -49,18 +55,20 @@ export function SingUp() {
   }
 
   async function handleSingUp({ email, name, password }: FormDataProps){
-
     
     try{
-      const response = await api.post('/users', {
+      setIsLoading(true);
+
+      await api.post('/users', {
         name,
         email,
         password
       })
 
-      console.log(response)
-    } catch(error) {
+      await singIn(email, password)
 
+    } catch(error) {
+      setIsLoading(false)
       const isAppError = error instanceof AppError
 
       const title = isAppError ? error.message : 'Nao foi possível criar a conta '
@@ -164,6 +172,7 @@ export function SingUp() {
           <Button 
             title="Criar e acessar"
             onPress={handleSubmit(handleSingUp)}
+            isLoading={isLoading}
           />
         </Center>
 

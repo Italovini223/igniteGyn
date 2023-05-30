@@ -1,7 +1,11 @@
 import { ReactNode, createContext, useState, useEffect } from 'react'
+
 import { UserDto } from '@dtos/UserDto'
+
 import { api } from '@services/api'
+
 import { storageUserSave, storageUserGet, storageUserRemove } from '@storage/storageUser'
+import { storageAuthTokenSave, storageAuthTokenGet, storageAuthTokenRemove } from '@storage/storageAuthToken'
 
 
 export type AuthContextDataProps = {
@@ -23,6 +27,30 @@ export function AuthContextProvider({ children }: AuthContextProviderProps){
   const [user, setUser] = useState<UserDto>({} as UserDto) 
   const [isLoadingUserStorageData, setIsLoadingUserStorageData] = useState(true)
 
+  async function UserAndTokenUpdate(userData: UserDto, token: string){
+    try {
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      setUser(userData)
+
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async function storageUserAndTokenSave(user: UserDto, token: string) {
+    try {
+      setIsLoadingUserStorageData(true)
+
+      await storageUserSave(user)
+      await storageAuthTokenSave(token)
+
+    } catch (error) {
+      throw error
+
+    } finally {
+      setIsLoadingUserStorageData(false)
+    }
+  }
 
   async function singIn(email: string, password: string){
     try {
@@ -31,9 +59,9 @@ export function AuthContextProvider({ children }: AuthContextProviderProps){
         password
       })
 
-      if(data.user){
-        setUser(data.user)
-        storageUserSave(data.user)
+      if(data.user && data.token){
+        await UserAndTokenUpdate(data.user, data.token)
+        await storageUserAndTokenSave(data.user, data.token)
       }
     } catch (error) {
       throw error
@@ -42,15 +70,18 @@ export function AuthContextProvider({ children }: AuthContextProviderProps){
 
   async function loadUserData(){
     try {
+      setIsLoadingUserStorageData(true)
+
       const userLogged = await storageUserGet()
+      const token = await storageAuthTokenGet()
   
-      if(userLogged){
-        setUser(userLogged)
-        setIsLoadingUserStorageData(false)
+      if( token && userLogged){
+        await UserAndTokenUpdate(userLogged, token)
       }
       
     } catch (error) {
       throw error
+
     } finally {
       setIsLoadingUserStorageData(false)
     }
@@ -59,9 +90,12 @@ export function AuthContextProvider({ children }: AuthContextProviderProps){
   async function singOut(){
     try {
       setIsLoadingUserStorageData(true)
+      
       await storageUserRemove()
+      await storageAuthTokenRemove()
 
       setUser({} as UserDto)
+
     } catch (error) {
       throw error
     } finally {

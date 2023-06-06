@@ -69,7 +69,7 @@ export function Exercise(){
       })
 
       toast.show({
-        title: 'Parabens! exercicio registrado no seu historico',
+        title: 'Parabéns! exercício registrado no seu histórico',
         placement: 'top',
         bgColor: 'green.700'
       })

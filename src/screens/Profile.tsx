@@ -16,6 +16,8 @@ import { AppError } from '@utils/AppError'
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system'
 
+import userPhotoDefault from '@assets/userPhotoDefault.png'
+
 import { FileInfo } from 'expo-file-system'
 
 import { ScreenHeader } from '@components/ScreenHeader'
@@ -47,7 +49,7 @@ const profileSchema = yup.object({
 export function Profile(){
   const [isLoading, setIsLoading] = useState(false);
   const [photoIsLoading, setPhotoIsLoading] = useState(false)
-  const [userPhoto, setUserPhoto] = useState('https://github.com/italovini223.png')
+  const [userPhoto, setUserPhoto] = useState()
 
 
   const { user, updateUserProfile } = useAuth()
@@ -90,7 +92,33 @@ export function Profile(){
           return 
         }
 
-        setUserPhoto(photoSelected.assets[0].uri)
+        const fileExtension = photoSelected.assets[0].uri.split('.').pop()
+
+        const photoFile = {
+          name: `${user.name}.${fileExtension}`.toLocaleLowerCase(),
+          uri: photoSelected.assets[0].uri,
+          type: `${photoSelected.assets[0].type}/${fileExtension}`
+        } as any
+
+        const userPhotoUploadForm = new FormData()
+        userPhotoUploadForm.append('avatar', photoFile)
+
+        const avatarUpdatedResponse = await api.patch('/users/avatar', userPhotoUploadForm, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+
+        const userUpdated = user;
+        userUpdated.avatar = avatarUpdatedResponse.data.avatar
+        updateUserProfile(userUpdated)
+
+        toast.show({
+          title: 'Foto atualizada!',
+          placement: 'top',
+          bgColor: 'green.500'
+        })
+
       }
 
     } catch (error) {
@@ -153,7 +181,9 @@ export function Profile(){
             />
             :
             <UserPhoto 
-              source={{uri: userPhoto}}
+              source={
+                user.avatar ? { uri: `${api.defaults.baseURL}/avatars/${user.avatar}`} : userPhotoDefault
+              }
               alt='Foto do usuário'
               size={PHOTO_SIZE}
             />

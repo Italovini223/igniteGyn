@@ -3,6 +3,8 @@ import { HStack, Heading, Text, VStack, Icon } from 'native-base'
 
 import { useAuth } from '@hooks/useAuth'
 
+import { api } from '@services/api'
+
 import userPhotoDefault from '@assets/userPhotoDefault.png'
 
 import { MaterialIcons } from '@expo/vector-icons'
@@ -12,12 +14,12 @@ import { UserPhoto } from './UserPhoto'
 export function HomeHeader() {
   const { user, singOut } = useAuth()
 
-
-  const userPhoto = user.avatar ? user.avatar : userPhotoDefault
   return (
     <HStack bg="gray.600" pt={16} pb={5} px={8} alignItems="center">
       <UserPhoto 
-        source={userPhoto}
+        source={
+          user.avatar ? { uri: `${api.defaults.baseURL}/avatar/${user.avatar}`} : userPhotoDefault
+        }
         size={16}
         alt='Image do usuário'
         mr={4}
